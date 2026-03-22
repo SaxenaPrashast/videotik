@@ -29,7 +29,11 @@ const videoSchema = new Schema<IVideo>({
     transformations: {
         width: { type: Number, default: VIDEO_DIMENSIONS.width },
         height: { type: Number, default: VIDEO_DIMENSIONS.height },
-        quality: { type: Number, default: 80 },
+        quality: { type: Number, min: 1, max: 100 },
     },
     description: { type: String, required: true },
 }, { timestamps: true });
+
+const Video = models.Video || model<IVideo>('Video', videoSchema);
+
+export default Video;
