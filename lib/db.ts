@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { buffer } from 'stream/consumers';
 
 const MONGODB_URI = process.env.MONGODB_URI!;
 
@@ -17,21 +18,21 @@ export async function connectToDatabase() {
         return cached.conn;
     }
     if(!cached.promise) {
+        const opts = {
+            bufferCommands: true,
+            maxpoolsize: 10,
+        };
         mongoose
         .connect(MONGODB_URI,)
-        .then(() => {mongoose.connection.on('connected', () => {
-            console.log('MongoDB connected');
-        }).on('error', (err) => {
-            console.error('MongoDB connection error:', err);
-        });
-        const opts = {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        };
-        cached.promise = mongoose.connect(MONGODB_URI, opts).then(mongoose => {
-            return mongoose;
-        });
-    }   
-    cached.conn = await cached.promise;
-    return cached.conn;
+        .then(() => {mongoose.connection})
+
+        try{
+            cached.conn = await cached.promise;
+        } catch (error) {
+            cached.promise = null;
+            throw error;
+        }
+
+        return cached.conn;
 } 
+}
